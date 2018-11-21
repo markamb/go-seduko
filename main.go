@@ -32,7 +32,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fileName = filepath.Join(dir, "seduko2.csv")
+		fileName = filepath.Join(dir, "seduko1.csv")
 	}
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -52,11 +52,11 @@ func main() {
 		log.Fatalf("Invalid seduko definition supplied: %v\n", err)
 		return
 	}
-	puzzle.print()
+	puzzle.print(false)
 	err = puzzle.solve()
 	if err != nil {
 		fmt.Printf("Error solving seduko: %v\n", err)
 		return
 	}
-	puzzle.print()
+	puzzle.print(true)
 }

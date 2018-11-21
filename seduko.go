@@ -105,32 +105,34 @@ func (sed *seduko) init(scanner *bufio.Scanner) error {
 		sed.cells[i] = make([]puzzleCell, gridSize, gridSize)
 	}
 
-	row := 0
-	for scanner.Scan() {
-		line := scanner.Text()
-		nums := strings.Split(line, ",")
-		if len(nums) != gridSize {
-			return &invalidSeduko{message: fmt.Sprintf("Invalid seduko definition: Must have exactly %d columns, have %d on line %d", gridSize, len(nums), row+1)}
-		}
-		for col := 0; col < gridSize; col++ {
-			if len(nums[col]) != 0 {
-				val, err := strconv.ParseInt(nums[col], 10, 64)
-				if err != nil {
-					return &invalidSeduko{nestedError: err}
-				}
-				if !sed.trySetCell(row, col, int(val), true) {
-					return &invalidSeduko{message: fmt.Sprintf("Number %d at cell (%d,%d) is not valid", val, row+1, col+1)}
+	if scanner != nil {
+		row := 0
+		for scanner.Scan() {
+			line := scanner.Text()
+			nums := strings.Split(line, ",")
+			if len(nums) != gridSize {
+				return &invalidSeduko{message: fmt.Sprintf("Invalid seduko definition: Must have exactly %d columns, have %d on line %d", gridSize, len(nums), row+1)}
+			}
+			for col := 0; col < gridSize; col++ {
+				if len(nums[col]) != 0 {
+					val, err := strconv.ParseInt(nums[col], 10, 64)
+					if err != nil {
+						return &invalidSeduko{nestedError: err}
+					}
+					if !sed.trySetCell(row, col, int(val), true) {
+						return &invalidSeduko{message: fmt.Sprintf("Number %d at cell (%d,%d) is not valid", val, row+1, col+1)}
+					}
 				}
 			}
+			if row == gridSize-1 {
+				break // don't read any more lines
+			}
+			row++
 		}
-		if row == gridSize-1 {
-			break // don't read any more lines
-		}
-		row++
-	}
 
-	if row != gridSize-1 {
-		return &invalidSeduko{message: fmt.Sprintf("Only %d rows read, must have %d!", row, gridSize)}
+		if row != gridSize-1 {
+			return &invalidSeduko{message: fmt.Sprintf("Only %d rows read, must have %d!", row, gridSize)}
+		}
 	}
 
 	return nil
@@ -158,7 +160,7 @@ func (sed *seduko) init(scanner *bufio.Scanner) error {
 	*/
 }
 
-func (sed *seduko) print() {
+func (sed *seduko) print(showTiming bool) {
 	switch sed.status {
 	case statusSolved:
 		fmt.Printf("Solved:\n")
@@ -183,7 +185,7 @@ func (sed *seduko) print() {
 		fmt.Printf(" |\n")
 	}
 	fmt.Printf(" -------------------------------------\n\n")
-	if sed.status == statusSolved {
+	if showTiming && sed.status == statusSolved {
 		fmt.Printf("Solved in %g ms\n", float64(sed.solveDuration)/float64(time.Millisecond))
 	}
 }
